@@ -1,2 +1,4 @@
 [Bb]uild/*
 !*/.gitkeep
+compile_commands.json
+.cache
