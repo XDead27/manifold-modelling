@@ -42,7 +42,8 @@ find_package(OpenGL REQUIRED)
 include_directories (src/
                      vendor/glad/include/
                      vendor/glfw/include/
-                     vendor/glm/)
+                     vendor/glm/
+                     vendor/stb/)
 
 #
 # Add files
