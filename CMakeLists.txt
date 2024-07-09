@@ -57,7 +57,8 @@ include_directories (src/
                      src/Renderer
                      src/Math
                      src/Utils
-                     src/Models)
+                     src/Models
+                     src/Scene)
 
 # Include libs
 include_directories (vendor/glad/include/
