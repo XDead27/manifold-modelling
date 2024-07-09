@@ -37,10 +37,30 @@ set(OpenGL_GL_PREFERENCE "GLVND")
 find_package(OpenGL REQUIRED)
 
 #
+# Add paths
+#
+set(RESOURCE_DIR "${CMAKE_SOURCE_DIR}/resources")
+set(SHADER_DIR "${RESOURCE_DIR}/shaders")
+set(TEXTURE_DIR "${RESOURCE_DIR}/textures")
+
+add_definitions(-DRESOURCE_DIR="${RESOURCE_DIR}")
+add_definitions(-DSHADER_DIR="${SHADER_DIR}")
+add_definitions(-DTEXTURE_DIR="${TEXTURE_DIR}")
+#
 # Set include paths
 #
+
+# Include sources
 include_directories (src/
-                     vendor/glad/include/
+                     src/App
+                     src/Shaders
+                     src/Renderer
+                     src/Math
+                     src/Utils
+                     src/Models)
+
+# Include libs
+include_directories (vendor/glad/include/
                      vendor/glfw/include/
                      vendor/glm/
                      vendor/stb/)

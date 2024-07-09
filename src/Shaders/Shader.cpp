@@ -1,9 +1,14 @@
-#include "shader.h"
+#include "Shader.h"
 #include <string>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-Shader::Shader(const char* vertexPath, const char* fragmentPath)
+#include <fstream>
+#include <sstream>
+#include <iostream>
+
+
+Shader::Shader(std::string vertexPath, std::string fragmentPath)
 {
     // 1. retrieve the vertex/fragment source code from filePath
     std::string vertexCode;

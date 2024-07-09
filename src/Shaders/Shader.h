@@ -5,10 +5,6 @@
 #include <glm/glm.hpp>
   
 #include <string>
-#include <fstream>
-#include <sstream>
-#include <iostream>
-  
 
 class Shader
 {
@@ -17,7 +13,7 @@ public:
 	unsigned int ID;
 
 	// constructor reads and builds the shader
-	Shader(const char* vertexPath, const char* fragmentPath);
+	Shader(std::string vertexPath, std::string fragmentPath);
 	// use/activate the shader
 	void use();
 	// utility uniform functions
