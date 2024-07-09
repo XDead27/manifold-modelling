@@ -1,23 +1,24 @@
 #include "Mesh.h"
+#include <cstdio>
 #include <numeric>
 
-Mesh::Mesh(std::vector<Vertex> vertices, std::vector<Texture> textures)
+Mesh::Mesh(std::vector<Vertex> pvertices, std::vector<Texture> ptextures) : Mesh::Mesh(pvertices, {}, ptextures, GL_STATIC_DRAW, GL_TRIANGLES)
 {
-    std::vector<GLuint> genIndices(vertices.size());
+    std::vector<GLuint> genIndices(pvertices.size());
     std::iota(genIndices.begin(), genIndices.end(), 0);
-    Mesh(vertices, genIndices, textures, GL_STATIC_DRAW, GL_TRIANGLES);
+    this->indices = genIndices;
+
+    setupMesh();
 }
 
-Mesh::Mesh(std::vector<Vertex> vertices, std::vector<GLuint> indices, std::vector<Texture> textures)
-{
-    Mesh(vertices, indices, textures, GL_STATIC_DRAW, GL_TRIANGLES);
-}
+Mesh::Mesh(std::vector<Vertex> vertices, std::vector<GLuint> indices, std::vector<Texture> textures) : Mesh::Mesh(vertices, indices, textures, GL_STATIC_DRAW, GL_TRIANGLES) {}
 
-Mesh::Mesh(std::vector<Vertex> vertices, std::vector<GLuint> indices, std::vector<Texture> textures, GLenum drawMode, GLenum primitiveType)
+Mesh::Mesh(std::vector<Vertex> pvertices, std::vector<GLuint> pindices, std::vector<Texture> ptextures, GLenum drawMode, GLenum primitiveType)
 {
-    this->vertices = vertices;
-    this->indices = indices;
-    this->textures = textures;
+    this->vertices = pvertices;
+    this->indices = pindices;
+    this->textures = ptextures;
+
     this->_drawMode = drawMode;
     this->_primitiveType = primitiveType;
 
@@ -36,8 +37,7 @@ void Mesh::setupMesh()
     glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), &vertices[0], _drawMode);  
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ebo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(GLuint), 
-                 &indices[0], _drawMode);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(GLuint), &indices[0], _drawMode);
 
     // vertex positions
     glEnableVertexAttribArray(0);	
@@ -56,9 +56,13 @@ void Mesh::Draw(Shader &shader)
 {
     GLuint diffuseNr = 1;
     GLuint specularNr = 1;
+
+    shader.use();
+
     for(GLuint i = 0; i < textures.size(); i++)
     {
         glActiveTexture(GL_TEXTURE0 + i); // activate proper texture unit before binding
+        glBindTexture(GL_TEXTURE_2D, textures[i].id);
         // retrieve texture number (the N in diffuse_textureN)
         std::string number, name;
         TextureType ttype = textures[i].type;
@@ -72,7 +76,7 @@ void Mesh::Draw(Shader &shader)
         }
 
         shader.setInt(("material." + name + number).c_str(), i);
-        glBindTexture(GL_TEXTURE_2D, textures[i].id);
+        // printf("setting %s\n", ("material." + name + number).c_str());
     }
     glActiveTexture(GL_TEXTURE0);
 

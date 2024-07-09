@@ -91,7 +91,7 @@ int main()
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
-    std::vector<Vertex> vertices {
+    std::vector<Vertex> vertices = {
         // positions          // normals           // texture coords
         {{-0.5f, -0.5f, -0.5f}, { 0.0f,  0.0f, -1.0f}, { 0.0f,  0.0f}},
         {{ 0.5f, -0.5f, -0.5f}, { 0.0f,  0.0f, -1.0f}, { 1.0f,  0.0f}},
@@ -150,7 +150,7 @@ int main()
     // load image, create texture and generate mipmaps
     int width, height, nrChannels;
     stbi_set_flip_vertically_on_load(true); // tell stb_image.h to flip loaded texture's on the y-axis.
-    unsigned char *data = stbi_load("/home/mrxdead/Documents/Projects/manifold-modelling/resources/textures/rainbow-checkerboard.jpg", &width, &height, &nrChannels, 0);
+    unsigned char *data = stbi_load((std::string(TEXTURE_DIR) + "/rainbow-checkerboard.jpg").c_str(), &width, &height, &nrChannels, 0);
     if (data)
     {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
@@ -184,13 +184,11 @@ int main()
         std::cout << "Failed to load texture" << std::endl;
     }
     stbi_image_free(data);
- 
-    Texture tex1 {texture1, TT_DIFFUSE};
-    Texture tex2 {texture2, TT_SPECULAR};
-    std::vector<Texture> textures {tex1, tex2};
+
+    std::vector<Texture> textures = {{texture1, TT_DIFFUSE}, {texture2, TT_SPECULAR}};
 
     Mesh* cube = new Mesh(vertices, textures);
-    
+
     // setup picking buffers
     // ---------------------
     GLuint pickingColorBuffer, pickingDepthBuffer;
@@ -248,7 +246,7 @@ int main()
 
         // second pass: default framebuffer
         // --------------------------------
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // activate shader
@@ -258,6 +256,16 @@ int main()
         shdr.setMat4("projection", projection); // note: currently we set the projection matrix each frame, but since the projection matrix rarely changes it's often best practice to set it outside the main loop only once.
         shdr.setMat4("view", view);
         shdr.setMat4("model", model);
+
+        // set light attributes
+        shdr.setVec3("light.position", {-5.0f, 0.0f, 3.0f});
+        shdr.setVec3("light.ambient", {0.2f, 0.2f, 0.2f});
+        shdr.setVec3("light.diffuse", {0.5f, 0.5f, 0.5f});
+        shdr.setVec3("light.specular", {1.0f, 1.0f, 1.0f});
+
+        shdr.setVec3("viewPos", {0.0f, 0.0f, 0.0f});
+
+        shdr.setFloat("material.shininess", 32);
 
         cube->Draw(shdr);
  
