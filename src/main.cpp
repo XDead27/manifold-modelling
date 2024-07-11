@@ -15,6 +15,7 @@
 #include <Models/Mesh.h>
 #include <Utils/TextureUtils.h>
 #include <Scene/Camera.h>
+#include <Scene/Light.h>
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
@@ -39,7 +40,7 @@ void processInput(GLFWwindow *window);
 GLuint pickingFBO;
 
 // camera
-Camera camera;
+Camera camera("c1");
 double lastXc = SCR_WIDTH / 2.0f; 
 double lastYc = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
@@ -156,6 +157,8 @@ int main()
     std::vector<Texture> textures = {{texture1, TT_DIFFUSE}, {texture2, TT_SPECULAR}};
 
     Mesh* cube = new Mesh(vertices, textures);
+    Light light("l1");
+    light.setTranslation({-5.0f, 0.0f, 3.0f});
 
     // setup picking buffers
     // ---------------------
@@ -231,12 +234,9 @@ int main()
         shdr.setMat4("model", model);
 
         // set light attributes
-        shdr.setVec3("light.position", {-5.0f, 0.0f, 3.0f});
-        shdr.setVec3("light.ambient", {0.2f, 0.2f, 0.2f});
-        shdr.setVec3("light.diffuse", {0.5f, 0.5f, 0.5f});
-        shdr.setVec3("light.specular", {1.0f, 1.0f, 1.0f});
+        light.updateShader(shdr);
 
-        shdr.setVec3("viewPos", camera.getTranslation());
+        camera.updateShader(shdr);
 
         shdr.setFloat("material.shininess", 32);
 

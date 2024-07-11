@@ -1,26 +1,25 @@
 #include "SceneObject.h"
 #include "glm/fwd.hpp"
+#include <string>
 
-SceneObject::SceneObject(glm::vec3 tra, glm::vec3 rot, glm::vec3 sca)
-{
-    this->_translation = tra;
-    this->_rotation = rot;
-    this->_scale = sca;
-}
-
-glm::vec3 SceneObject::getTranslation()
+glm::vec3 SceneObject::getTranslation() const
 {
     return this->_translation;
 }
 
-glm::vec3 SceneObject::getRotation()
+glm::vec3 SceneObject::getRotation() const
 {
     return this->_rotation;
 }
 
-glm::vec3 SceneObject::getScale()
+glm::vec3 SceneObject::getScale() const
 {
     return this->_scale;
+}
+
+std::string SceneObject::getName() const
+{
+    return this->_name;
 }
 
 void SceneObject::setTranslation(glm::vec3 newTra)

@@ -4,8 +4,10 @@
 #include <glad/glad.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <string>
 
 Camera::Camera(
+    std::string name,
     glm::vec3 translation,
     glm::vec3 rotation,
     glm::vec3 scale,
@@ -13,13 +15,12 @@ Camera::Camera(
     float mvmtSpeed,
     float mouseSensitivity,
     float zoom
-) : SceneObject(translation, rotation, scale)
-{
-    this->worldUp = worldUp;
-    this->movementSpeed = mvmtSpeed;
-    this->mouseSensitivity = mouseSensitivity;
-    this->zoom = zoom;
-}
+) : SceneObject(name, translation, rotation, scale),
+    worldUp(worldUp),
+    movementSpeed(mvmtSpeed),
+    mouseSensitivity(mouseSensitivity),
+    zoom(zoom)
+{}
 
 glm::mat4 Camera::getViewMatrix()
 {
@@ -80,4 +81,9 @@ void Camera::updateCameraVectors()
     // also re-calculate the Right and Up vector
     right = glm::normalize(glm::cross(front, worldUp));  // normalize the vectors, because their length gets closer to 0 the more you look up or down which results in slower movement.
     up    = glm::normalize(glm::cross(right, front));
+}
+
+void Camera::updateShader(Shader& shader) const 
+{
+    shader.setVec3(("camera_" + this->getName() + ".position").c_str(), this->getTranslation());
 }

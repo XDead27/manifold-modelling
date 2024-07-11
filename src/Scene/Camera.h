@@ -5,6 +5,7 @@
 #include <glm/glm.hpp>
 
 #include <Scene/SceneObject.h>
+#include <string>
 
 // Defines several possible options for camera movement. Used as abstraction to stay away from window-system specific input methods
 enum CameraMovement {
@@ -37,14 +38,16 @@ public:
     float zoom;
 
     // constructor with vectors
-    Camera() : SceneObject(), 
-               worldUp({0.0f, 1.0f, 0.0f}), 
-               movementSpeed(SPEED),
-               mouseSensitivity(SENSITIVITY),
-               zoom(ZOOM)
+    Camera(std::string name) : 
+        SceneObject(name), 
+        worldUp({0.0f, 1.0f, 0.0f}), 
+        movementSpeed(SPEED),
+        mouseSensitivity(SENSITIVITY),
+        zoom(ZOOM)
     {}
 
     Camera(
+        std::string name,
         glm::vec3 translation,
         glm::vec3 rotation,
         glm::vec3 scale,
@@ -65,6 +68,8 @@ public:
 
     // processes input received from a mouse scroll-wheel event. Only requires input on the vertical wheel-axis
     void processMouseScroll(float yoffset);
+
+    void updateShader(Shader& shader) const override;
 
 private:
     // calculates the front vector from the Camera's (updated) Euler Angles
