@@ -22,9 +22,10 @@ Camera::Camera(
     zoom(zoom)
 {}
 
-glm::mat4 Camera::getViewMatrix()
+glm::mat4 Camera::getViewMatrix() const
 {
-    return glm::lookAt(getTranslation(), getTranslation() + front, up);
+    // return glm::lookAt(getTranslation(), getTranslation() + front, up);
+    return glm::lookAt({0.0f, 0.0f, 0.0f}, front, up); // for hyperbolic model
 }
 
 void Camera::processKeyboard(CameraMovement direction, float deltaTime)
@@ -62,7 +63,7 @@ void Camera::processMouseMovement(float xoffset, float yoffset, GLboolean constr
 
 void Camera::processMouseScroll(float yoffset)
 {
-    zoom -= (float)yoffset;
+    zoom -= yoffset;
     if (zoom < 1.0f)
         zoom = 1.0f;
     if (zoom > 45.0f)
@@ -86,4 +87,5 @@ void Camera::updateCameraVectors()
 void Camera::updateShader(Shader& shader) const 
 {
     shader.setVec3(("camera_" + this->getName() + ".position").c_str(), this->getTranslation());
+    shader.setMat4("view", getViewMatrix());
 }

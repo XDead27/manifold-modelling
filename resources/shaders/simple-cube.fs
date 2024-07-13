@@ -13,7 +13,7 @@ struct Light {
 };
 
 struct Camera {
-	vec3 position;
+    vec3 position;
 };
 
 in vec2 TexCoords;

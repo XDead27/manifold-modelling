@@ -7,11 +7,11 @@
 class Model
 {
 public:
-    Model(std::vector<Mesh> meshes);
+    Model(std::vector<Mesh*>& meshes) : _meshes(meshes) {}
     void Draw(Shader &shader);
 
 private:
-    std::vector<Mesh> _meshes;
+    std::vector<Mesh*> _meshes;
 };
 
 #endif // !MODEL_H

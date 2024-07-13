@@ -16,6 +16,7 @@
 #include <Utils/TextureUtils.h>
 #include <Scene/Camera.h>
 #include <Scene/Light.h>
+#include <Scene/Actor.h>
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
@@ -28,7 +29,13 @@ bool mousePressed = false;
 int selectedModelID = -1;
 double lastX = SCR_WIDTH / 2.0f; 
 double lastY = SCR_HEIGHT / 2.0f;
-glm::mat4 model = glm::mat4(1.0f);
+
+// modes
+enum EditorMode {
+    EM_IDLE,
+    EM_MOVEMENT,
+    EM_OBJECT_SELECTED
+} currentMode = EM_IDLE;
 
 // input actions
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
@@ -48,6 +55,8 @@ bool firstMouse = true;
 // timing
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
+
+Actor* cubeActor;
 
 int main()
 {
@@ -93,12 +102,12 @@ int main()
     // build and compile our shader program
     // ------------------------------------
     Shader shdr(
-        std::string(SHADER_DIR) + "/simple-cube.vs", 
+        std::string(SHADER_DIR) + "/klein-cube.vs", 
         std::string(SHADER_DIR) + "/simple-cube.fs"
     );
 
     Shader pickingShader(
-        std::string(SHADER_DIR) + "/picking.vs",
+        std::string(SHADER_DIR) + "/klein-cube.vs",
         std::string(SHADER_DIR) + "/picking.fs"
     );
 
@@ -157,6 +166,10 @@ int main()
     std::vector<Texture> textures = {{texture1, TT_DIFFUSE}, {texture2, TT_SPECULAR}};
 
     Mesh* cube = new Mesh(vertices, textures);
+    std::vector<Mesh*> cubeVec = { cube };
+    Model cubeModel(cubeVec);
+    cubeActor = new Actor("cube1", &cubeModel);
+
     Light light("l1");
     light.setTranslation({-5.0f, 0.0f, 3.0f});
 
@@ -202,10 +215,9 @@ int main()
         processInput(window);
 
         // create transformations
-        glm::mat4 view          = camera.getViewMatrix();
         glm::mat4 projection    = glm::mat4(1.0f);
         projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-        glm::mat4 MVP = projection * view * model; 
+        cubeActor->setTranslationOffset(-camera.getTranslation());
 
         // first pass: picking framebuffer
         // -------------------------------
@@ -214,9 +226,12 @@ int main()
 
         pickingShader.use();
         pickingShader.setVec3("objectColor", {0.3f, 0.3f, 1.0f});
-        pickingShader.setMat4("MVP", MVP);
+        pickingShader.setMat4("projection", projection);
+        camera.updateShader(pickingShader);
 
-        cube->DrawGeometry();
+        // pickingShader.setMat4("model", model);
+        // cube->Draw(pickingShader);
+        cubeActor->updateShader(pickingShader);
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -230,17 +245,15 @@ int main()
 
         // pass transformation matrices to the shader
         shdr.setMat4("projection", projection); // note: currently we set the projection matrix each frame, but since the projection matrix rarely changes it's often best practice to set it outside the main loop only once.
-        shdr.setMat4("view", view);
-        shdr.setMat4("model", model);
 
         // set light attributes
         light.updateShader(shdr);
-
         camera.updateShader(shdr);
-
         shdr.setFloat("material.shininess", 32);
 
-        cube->Draw(shdr);
+        // shdr.setMat4("model", model);
+        // cube->Draw(shdr);
+        cubeActor->updateShader(shdr);
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
@@ -250,7 +263,7 @@ int main()
 
     // delete all created objects
     // --------------------------
-    delete cube;
+    delete cubeActor;
 
     // glfw: terminate, clearing all previously allocated GLFW resources.
     // ------------------------------------------------------------------
@@ -281,31 +294,41 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int) {
 
         if (pickedID != -1) {
             mousePressed = true;
+            currentMode = EM_OBJECT_SELECTED;
             selectedModelID = pickedID;  // Store selected model ID
             glfwGetCursorPos(window, &lastX, &lastY);
         }
     } else if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE) {
         mousePressed = false;
+        currentMode = EM_IDLE;
         selectedModelID = -1;  // Reset selected model ID
+    } else if (button == GLFW_MOUSE_BUTTON_MIDDLE && action == GLFW_PRESS) {
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        currentMode = EM_MOVEMENT;
+        glfwGetCursorPos(window, &lastX, &lastY);
+        firstMouse = true;
+    } else if (button == GLFW_MOUSE_BUTTON_MIDDLE && action == GLFW_RELEASE) {
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        currentMode = EM_IDLE;
+        glfwSetCursorPos(window, lastX, lastY);
     }
 }
 
 void cursor_position_callback(GLFWwindow*, double xpos, double ypos) {
-    if (mousePressed && selectedModelID != -1) {
+    if (currentMode == EM_OBJECT_SELECTED) {
         float xoffset = xpos - lastX;
         float yoffset = ypos - lastY;
         lastX = xpos;
         lastY = ypos;
 
-        float sensitivity = 0.1f;
+        float sensitivity = 0.01f;
         xoffset *= sensitivity;
         yoffset *= sensitivity;
 
         // Update model matrix for the selected model
-        model = glm::rotate(model, glm::radians(yoffset), glm::vec3(1.0f, 0.0f, 0.0f));
-        model = glm::rotate(model, glm::radians(xoffset), glm::vec3(0.0f, 1.0f, 0.0f));
+        cubeActor->addRotation({xoffset, yoffset, 0.0f});
     }
-    else {
+    else if (currentMode == EM_MOVEMENT) {
         float xposloc = static_cast<float>(xpos);
         float yposloc = static_cast<float>(ypos);
 
@@ -338,14 +361,31 @@ void processInput(GLFWwindow *window)
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        camera.processKeyboard(CM_FORWARD, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        camera.processKeyboard(CM_BACKWARD, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        camera.processKeyboard(CM_LEFT, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        camera.processKeyboard(CM_RIGHT, deltaTime);
+    switch (currentMode) {
+        case EM_MOVEMENT:
+            if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+                camera.processKeyboard(CM_FORWARD, deltaTime);
+            if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+                camera.processKeyboard(CM_BACKWARD, deltaTime);
+            if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+                camera.processKeyboard(CM_LEFT, deltaTime);
+            if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+                camera.processKeyboard(CM_RIGHT, deltaTime);
+            break;
+        case EM_OBJECT_SELECTED:
+            if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+                cubeActor->addTranslation({0.0f, 0.0f, 0.2f});
+            if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+                cubeActor->addTranslation({0.0f, 0.0f, -0.2f});
+            if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+                cubeActor->addTranslation({0.2f, 0.0f, 0.0f});
+            if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+                cubeActor->addTranslation({-0.2f, 0.0f, 0.0f});
+
+            break;
+        default:
+            break;
+    }
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
