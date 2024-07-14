@@ -17,6 +17,7 @@
 #include <Scene/Camera.h>
 #include <Scene/Light.h>
 #include <Scene/Actor.h>
+#include <Renderer/Renderer.h>
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
@@ -26,7 +27,7 @@ const unsigned int SCR_HEIGHT = 600;
 
 // input variables
 bool mousePressed = false;
-int selectedModelID = -1;
+Actor* selectedActor = NULL;
 double lastX = SCR_WIDTH / 2.0f; 
 double lastY = SCR_HEIGHT / 2.0f;
 
@@ -44,7 +45,7 @@ void cursor_position_callback(GLFWwindow* window, double xpos, double ypos);
 void processInput(GLFWwindow *window);
 
 // picking
-GLuint pickingFBO;
+Renderer *renderer;
 
 // camera
 Camera camera("c1");
@@ -56,7 +57,7 @@ bool firstMouse = true;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
-Actor* cubeActor;
+Actor* cubeActor1, *cubeActor2;
 
 int main()
 {
@@ -110,6 +111,7 @@ int main()
         std::string(SHADER_DIR) + "/klein-cube.vs",
         std::string(SHADER_DIR) + "/picking.fs"
     );
+    renderer = new Renderer(&shdr, &pickingShader);
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
@@ -165,40 +167,29 @@ int main()
 
     std::vector<Texture> textures = {{texture1, TT_DIFFUSE}, {texture2, TT_SPECULAR}};
 
-    Mesh* cube = new Mesh(vertices, textures);
-    std::vector<Mesh*> cubeVec = { cube };
-    Model cubeModel(cubeVec);
-    cubeActor = new Actor("cube1", &cubeModel);
+    Mesh* cube1 = new Mesh(vertices, textures);
+    Mesh* cube2 = new Mesh(vertices, textures);
+    std::vector<Mesh*> cubeVec1 = { cube1 };
+    std::vector<Mesh*> cubeVec2 = { cube2 };
+    Model cubeModel1(cubeVec1);
+    Model cubeModel2(cubeVec2);
+    cubeActor1 = new Actor("cube1", &cubeModel1);
+    cubeActor2 = new Actor("cube2", &cubeModel2);
 
     Light light("l1");
     light.setTranslation({-5.0f, 0.0f, 3.0f});
 
-    // setup picking buffers
-    // ---------------------
-    GLuint pickingColorBuffer, pickingDepthBuffer;
-    glGenFramebuffers(1, &pickingFBO);
-    glBindFramebuffer(GL_FRAMEBUFFER, pickingFBO);
-
-    // create color attachment
-    // -----------------------
-    glGenTextures(1, &pickingColorBuffer);
-    glBindTexture(GL_TEXTURE_2D, pickingColorBuffer);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, pickingColorBuffer, 0);
-
-    // create depth attachment
-    // -----------------------
-    glGenRenderbuffers(1, &pickingDepthBuffer);
-    glBindRenderbuffer(GL_RENDERBUFFER, pickingDepthBuffer);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, 800, 600);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, pickingDepthBuffer);
-
-    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-        std::cerr << "Error: Framebuffer not complete!" << std::endl;
-
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    Scene scene = {
+        { cubeActor1, cubeActor2 },
+        { &light },
+        &camera
+    };
+    
+    glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+    pickingShader.use();
+    pickingShader.setMat4("projection", projection);
+    shdr.use();
+    shdr.setMat4("projection", projection);
 
     // render loop
     // -----------
@@ -215,45 +206,11 @@ int main()
         processInput(window);
 
         // create transformations
-        glm::mat4 projection    = glm::mat4(1.0f);
-        projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-        cubeActor->setTranslationOffset(-camera.getTranslation());
+        cubeActor1->setTranslationOffset(-camera.getTranslation());
+        cubeActor2->setTranslationOffset(-camera.getTranslation());
 
-        // first pass: picking framebuffer
-        // -------------------------------
-        glBindFramebuffer(GL_FRAMEBUFFER, pickingFBO);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        pickingShader.use();
-        pickingShader.setVec3("objectColor", {0.3f, 0.3f, 1.0f});
-        pickingShader.setMat4("projection", projection);
-        camera.updateShader(pickingShader);
-
-        // pickingShader.setMat4("model", model);
-        // cube->Draw(pickingShader);
-        cubeActor->updateShader(pickingShader);
-
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-        // second pass: default framebuffer
-        // --------------------------------
-        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        // activate shader
-        shdr.use();
-
-        // pass transformation matrices to the shader
-        shdr.setMat4("projection", projection); // note: currently we set the projection matrix each frame, but since the projection matrix rarely changes it's often best practice to set it outside the main loop only once.
-
-        // set light attributes
-        light.updateShader(shdr);
-        camera.updateShader(shdr);
-        shdr.setFloat("material.shininess", 32);
-
-        // shdr.setMat4("model", model);
-        // cube->Draw(shdr);
-        cubeActor->updateShader(shdr);
+        renderer->renderScene(scene);
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
@@ -263,7 +220,8 @@ int main()
 
     // delete all created objects
     // --------------------------
-    delete cubeActor;
+    // delete cubeActor1;
+    // delete cubeActor2;
 
     // glfw: terminate, clearing all previously allocated GLFW resources.
     // ------------------------------------------------------------------
@@ -279,29 +237,17 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int) {
         double xpos, ypos;
         glfwGetCursorPos(window, &xpos, &ypos);
 
-        // Read pixel color from picking buffer
-        glBindFramebuffer(GL_FRAMEBUFFER, pickingFBO);
-        glReadBuffer(GL_COLOR_ATTACHMENT0);
-        unsigned char data[3];
-        glReadPixels(xpos, SCR_HEIGHT - ypos, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, data);
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        selectedActor = renderer->getActorAtPosition({ xpos, ypos });
 
-        // Convert color to model ID
-        int pickedID = -1;
-        if (data[0] == 76 && data[2] == 255) {
-            pickedID = 1;
-        }
-
-        if (pickedID != -1) {
+        if (selectedActor != NULL) {
             mousePressed = true;
             currentMode = EM_OBJECT_SELECTED;
-            selectedModelID = pickedID;  // Store selected model ID
             glfwGetCursorPos(window, &lastX, &lastY);
         }
     } else if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE) {
         mousePressed = false;
         currentMode = EM_IDLE;
-        selectedModelID = -1;  // Reset selected model ID
+        selectedActor = NULL;  // Reset selected model ID
     } else if (button == GLFW_MOUSE_BUTTON_MIDDLE && action == GLFW_PRESS) {
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
         currentMode = EM_MOVEMENT;
@@ -326,7 +272,7 @@ void cursor_position_callback(GLFWwindow*, double xpos, double ypos) {
         yoffset *= sensitivity;
 
         // Update model matrix for the selected model
-        cubeActor->addRotation({xoffset, yoffset, 0.0f});
+        selectedActor->addRotation({xoffset, yoffset, 0.0f});
     }
     else if (currentMode == EM_MOVEMENT) {
         float xposloc = static_cast<float>(xpos);
@@ -374,13 +320,13 @@ void processInput(GLFWwindow *window)
             break;
         case EM_OBJECT_SELECTED:
             if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-                cubeActor->addTranslation({0.0f, 0.0f, 0.2f});
+                selectedActor->addTranslation({0.0f, 0.0f, 0.2f});
             if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-                cubeActor->addTranslation({0.0f, 0.0f, -0.2f});
+                selectedActor->addTranslation({0.0f, 0.0f, -0.2f});
             if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-                cubeActor->addTranslation({0.2f, 0.0f, 0.0f});
+                selectedActor->addTranslation({0.2f, 0.0f, 0.0f});
             if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-                cubeActor->addTranslation({-0.2f, 0.0f, 0.0f});
+                selectedActor->addTranslation({-0.2f, 0.0f, 0.0f});
 
             break;
         default:

@@ -1,21 +1,43 @@
 #ifndef RENDERER_H
 #define RENDERER_H
 
+#include "Camera.h"
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include <Shaders/Shader.h>
+#include <Scene/Actor.h>
+#include <Scene/Scene.h>
+
 #include <map>
 
-#include <Shaders/Shader.h>
+class Renderer
+{
+public:
+    Renderer
+    (
+        Shader *defaultShader,
+        Shader *pickingShader,
+        unsigned int screenWidth = 800,
+        unsigned int screenHeight = 600
+    );
 
-void render();
+    void renderScene(Scene& scene);
 
-void renderModel();
+    Actor* getActorAtPosition(glm::vec2 pos);
 
-void renderPicking(Shader* pickingShader, GLuint pickingFBO, std::map<GLint, glm::vec3> modelColors);
+private:
+    GLuint _pickingFBO;
+    Shader *_defaultShader, *_pickingShader;
+    unsigned int _screenWidth, _screenHeight;
+    std::map<GLuint, Actor*> _currentActorIds;
+
+    void _renderPicking(std::map<GLuint, Actor*> actors, Camera* camera);
+    void _setupPickingFramebuffer();
+};
 
 #endif
 
