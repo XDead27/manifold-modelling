@@ -1,6 +1,7 @@
 #ifndef MESH_H
 #define MESH_H
 
+#include <string>
 #include <vector>
 
 #include <glm/glm.hpp>
@@ -16,12 +17,15 @@ struct Vertex {
 
 enum TextureType {
     TT_DIFFUSE,
-    TT_SPECULAR
+    TT_SPECULAR,
+    TT_NORMAL,
+    TT_HEIGHT
 };
 
 struct Texture {
     GLuint id;
     TextureType type;
+    std::string path;
 };
 
 class Mesh {

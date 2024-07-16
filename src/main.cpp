@@ -1,3 +1,4 @@
+#include "Model.h"
 #include <cstdio>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -104,7 +105,7 @@ int main()
     // ------------------------------------
     Shader shdr(
         std::string(SHADER_DIR) + "/klein-cube.vs", 
-        std::string(SHADER_DIR) + "/simple-cube.fs"
+        std::string(SHADER_DIR) + "/material-cube.fs"
     );
 
     Shader pickingShader(
@@ -162,25 +163,33 @@ int main()
 
     // load and create a texture 
     // -------------------------
-    GLuint texture1 = loadTexture((std::string(TEXTURE_DIR) + "/rainbow-checkerboard.jpg").c_str());
-    GLuint texture2 = loadTexture((std::string(TEXTURE_DIR) + "/rainbow-checkerboard-specular.jpg").c_str());
+    std::string texture_dir = std::string(TEXTURE_DIR);
+    // GLuint texture1 = loadTexture("rainbow-checkerboard.jpg", texture_dir);
+    // GLuint texture2 = loadTexture("rainbow-checkerboard-specular.jpg", texture_dir);
 
-    std::vector<Texture> textures = {{texture1, TT_DIFFUSE}, {texture2, TT_SPECULAR}};
+    // std::vector<Texture> textures = {{texture1, TT_DIFFUSE}, {texture2, TT_SPECULAR}};
+    // std::vector<Texture> textures = {{texture1, TT_DIFFUSE}};
+    //
+    // Mesh* cube1 = new Mesh(vertices, textures);
+    // Mesh* cube2 = new Mesh(vertices, textures);
+    // std::vector<Mesh*> cubeVec1 = { cube1 };
+    // std::vector<Mesh*> cubeVec2 = { cube2 };
+    // Model cubeModel1(cubeVec1);
+    // Model cubeModel2(cubeVec2);
+    // cubeActor1 = new Actor("cube1", &cubeModel1);
+    // cubeActor2 = new Actor("cube2", &cubeModel2);
 
-    Mesh* cube1 = new Mesh(vertices, textures);
-    Mesh* cube2 = new Mesh(vertices, textures);
-    std::vector<Mesh*> cubeVec1 = { cube1 };
-    std::vector<Mesh*> cubeVec2 = { cube2 };
-    Model cubeModel1(cubeVec1);
-    Model cubeModel2(cubeVec2);
-    cubeActor1 = new Actor("cube1", &cubeModel1);
-    cubeActor2 = new Actor("cube2", &cubeModel2);
+    Model* backpackModel = new Model((std::string(RESOURCE_DIR) + "/assets/backpack/backpack.obj").c_str());
+    Actor* backpack = new Actor("backpack", backpackModel);
 
-    Light light("l1");
+    Model* sphereModel = new Model((std::string(RESOURCE_DIR) + "/assets/sphere/sphere.obj").c_str());
+    Actor* sphere = new Actor("kleinsphere", sphereModel);
+
+    Light light("l1", {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f});
     light.setTranslation({-5.0f, 0.0f, 3.0f});
 
     Scene scene = {
-        { cubeActor1, cubeActor2 },
+        { backpack },
         { &light },
         &camera
     };
@@ -206,8 +215,8 @@ int main()
         processInput(window);
 
         // create transformations
-        cubeActor1->setTranslationOffset(-camera.getTranslation());
-        cubeActor2->setTranslationOffset(-camera.getTranslation());
+        // cubeActor1->setTranslationOffset(-camera.getTranslation());
+        // cubeActor2->setTranslationOffset(-camera.getTranslation());
 
 
         renderer->renderScene(scene);

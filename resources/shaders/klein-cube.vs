@@ -19,8 +19,8 @@ void main()
 	vec4 euclidean_pos = model * vec4(vPos, 1.0);
 	float lorentz_factor = sqrt(ball_radius * ball_radius + dot(euclidean_pos.xyz, euclidean_pos.xyz));
 	vec3 klein_pos = (ball_radius / lorentz_factor) * euclidean_pos.xyz;
-	gl_Position = projection * view * vec4(klein_pos.xyz, 1.0f);
+	gl_Position = projection * view * vec4(klein_pos, 1.0f);
 	TexCoords = vTexCoords;
 	Normal = vNormal;
-	FragPos = vec3(model * vec4(vPos, 1.0)); // not working as intended
+	FragPos = klein_pos; // not working as intended
 }

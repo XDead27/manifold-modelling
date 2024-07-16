@@ -24,8 +24,8 @@ Camera::Camera(
 
 glm::mat4 Camera::getViewMatrix() const
 {
-    // return glm::lookAt(getTranslation(), getTranslation() + front, up);
-    return glm::lookAt({0.0f, 0.0f, 0.0f}, front, up); // for hyperbolic model
+    return glm::lookAt(getTranslation(), getTranslation() + front, up);
+    // return glm::lookAt({0.0f, 0.0f, 0.0f}, front, up); // for hyperbolic model
 }
 
 void Camera::processKeyboard(CameraMovement direction, float deltaTime)

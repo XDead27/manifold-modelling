@@ -28,16 +28,5 @@ uniform Camera camera_c1;
 
 void main() 
 {
-    vec3 lightDir = normalize(light_l1.position - FragPos);
-    vec3 norm = normalize(Normal);
-    float diff = max(dot(norm, lightDir), 0.0);
-
-    vec3 viewDir = normalize(camera_c1.position - FragPos);
-    vec3 reflectDir = reflect(-lightDir, norm);
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
-
-    vec3 ambient  = light_l1.ambient  * vec3(texture(material.texture_diffuse1, TexCoords));
-    vec3 diffuse  = light_l1.diffuse  * diff * vec3(texture(material.texture_diffuse1, TexCoords));  
-    vec3 specular = light_l1.specular * spec * vec3(texture(material.texture_specular1, TexCoords));
-    FragColor = vec4(ambient + diffuse + specular, 1.0);
+    FragColor = vec4(light_l1.ambient, 1.0);
 }

@@ -1,4 +1,5 @@
 #include "TextureUtils.h"
+#include <string>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
@@ -6,13 +7,16 @@
 
 // utility function for loading a 2D texture from file
 // ---------------------------------------------------
-GLuint loadTexture(char const * path)
+GLuint loadTexture(char const * path, std::string &directory)
 {
+    std::string filename = std::string(path);
+    filename = directory + '/' + filename;
+
     GLuint textureID;
     glGenTextures(1, &textureID);
     
     int width, height, nrComponents;
-    unsigned char *data = stbi_load(path, &width, &height, &nrComponents, 0);
+    unsigned char *data = stbi_load(filename.c_str(), &width, &height, &nrComponents, 0);
     if (data)
     {
         GLenum format;
@@ -36,7 +40,7 @@ GLuint loadTexture(char const * path)
     }
     else
     {
-        std::cout << "Texture failed to load at path: " << path << std::endl;
+        std::cout << "Texture failed to load at path: " << filename.c_str() << std::endl;
         stbi_image_free(data);
     }
 

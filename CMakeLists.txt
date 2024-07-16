@@ -37,6 +37,17 @@ set(OpenGL_GL_PREFERENCE "GLVND")
 find_package(OpenGL REQUIRED)
 
 #
+# Assimp options
+#
+set (ASSIMP_INSTALL OFF)
+set (ASSIMP_BUILD_DOCS OFF)
+set (ASSIMP_BUILD_EXAMPLES OFF)
+set (ASSIMP_BUILD_TESTS OFF)
+set (ASSIMP_WARNINGS_AS_ERRORS OFF)
+add_subdirectory (vendor/assimp)
+set (ASSIMP_LIBRARIES assimp)
+
+#
 # Add paths
 #
 set(RESOURCE_DIR "${CMAKE_SOURCE_DIR}/resources")
@@ -64,7 +75,8 @@ include_directories (src/
 include_directories (vendor/glad/include/
                      vendor/glfw/include/
                      vendor/glm/
-                     vendor/stb/)
+                     vendor/stb/
+                     vendor/assimp/include/)
 
 #
 # Add files
@@ -105,7 +117,8 @@ target_link_libraries (${PROJECT_NAME}
                        glfw
                        OpenGL::GL
                        ${GLFW_LIBRARIES}
-                       ${GLAD_LIBRARIES})
+                       ${GLAD_LIBRARIES}
+                       ${ASSIMP_LIBRARIES})
 set_target_properties (${PROJECT_NAME} PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${PROJECT_NAME})
 
