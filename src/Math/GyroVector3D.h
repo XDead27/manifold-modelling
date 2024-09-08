@@ -1,7 +1,6 @@
 #ifndef INCLUDE_MATH_GYROVECTOR3D_H_
 #define INCLUDE_MATH_GYROVECTOR3D_H_
 
-#include "Manifold.h"
 #include "glm/fwd.hpp"
 #include <glm/glm.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
@@ -19,6 +18,7 @@ class GyroVector3D
     GyroVector3D operator+(GyroVector3D b);
     GyroVector3D operator-();
     GyroVector3D operator-(GyroVector3D b);
+    glm::vec3 operator*(glm::vec3 f);
 };
 
 #endif  // INCLUDE_MATH_GYROVECTOR3D_H_

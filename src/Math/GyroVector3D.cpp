@@ -1,4 +1,5 @@
 #include "GyroVector3D.h"
+#include "Manifold.h"
 
 GyroVector3D GyroVector3D::operator+(GyroVector3D b)
 {
@@ -19,4 +20,19 @@ GyroVector3D GyroVector3D::operator-()
 GyroVector3D GyroVector3D::operator-(GyroVector3D b)
 {
     return *this + -b;
+}
+
+glm::vec3 GyroVector3D::operator*(glm::vec3 f)
+{
+    // Compute mobius addition
+    glm::vec3 a = vec;
+    glm::vec3 b = f;
+
+    glm::vec3 c = Manifold::K * glm::cross(a, b);
+    float d = 1.0f - Manifold::K * glm::dot(a, b);
+    glm::vec3 t = a + b;
+
+    glm::vec3 ma = (t * d + glm::cross(c, t)) / (d * d + glm::length2(c));
+
+    return gyr * ma;
 }
