@@ -1,4 +1,5 @@
 #include "SceneObject.h"
+#include <Math/GyroVector3D.h>
 #include "glm/fwd.hpp"
 #include <string>
 
@@ -20,6 +21,11 @@ glm::vec3 SceneObject::getScale() const
 std::string SceneObject::getName() const
 {
     return this->_name;
+}
+
+GyroVector3D SceneObject::getComposedGV() const
+{
+    return this->_composedGV;
 }
 
 void SceneObject::setTranslation(glm::vec3 newTra)
@@ -53,4 +59,9 @@ glm::vec3 SceneObject::scaleBy(glm::vec3 scBy)
 {
     this->_scale *= scBy;
     return this->_scale;
+}
+
+void SceneObject::_updateComposedGV()
+{
+    this->_composedGV = _localGV + SceneObject::worldGV;
 }

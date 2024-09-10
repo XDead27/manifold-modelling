@@ -3,11 +3,13 @@
 #include "glm/fwd.hpp"
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/string_cast.hpp>
-#include <iostream>
 
 void Actor::updateShader(Shader& shader) const
 {
+    this->updateComposedGV();
+
     shader.setMat4("model", _getModelMatrix());
+    shader.setMat4("hyperRot", getComposedGV().toMatrix());
 
     _activeModel->Draw(shader);
 }
