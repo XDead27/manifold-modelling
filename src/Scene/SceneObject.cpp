@@ -3,6 +3,8 @@
 #include "glm/fwd.hpp"
 #include <string>
 
+GyroVector3D SceneObject::worldGV = GyroVector3D();
+
 glm::vec3 SceneObject::getTranslation() const
 {
     return this->_translation;
@@ -59,9 +61,4 @@ glm::vec3 SceneObject::scaleBy(glm::vec3 scBy)
 {
     this->_scale *= scBy;
     return this->_scale;
-}
-
-void SceneObject::_updateComposedGV()
-{
-    this->_composedGV = _localGV + SceneObject::worldGV;
 }

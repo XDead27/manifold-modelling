@@ -6,7 +6,7 @@
 
 void Actor::updateShader(Shader& shader) const
 {
-    this->updateComposedGV();
+    SceneObject::updateShader(shader);
 
     shader.setMat4("model", _getModelMatrix());
     shader.setMat4("hyperRot", getComposedGV().toMatrix());

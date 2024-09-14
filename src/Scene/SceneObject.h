@@ -49,9 +49,10 @@ public:
     glm::vec3 addRotation(glm::vec3);
     glm::vec3 scaleBy(glm::vec3);
 
-    void updateComposedGV();
-
-    virtual void updateShader(Shader& shader) const = 0;
+    virtual void updateShader(Shader& shader) const 
+    {
+        shader.setMat4("hyperRot", (SceneObject::worldGV + _localGV).toMatrix());
+    }
 };
 
 #endif

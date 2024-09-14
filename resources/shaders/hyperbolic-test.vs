@@ -36,7 +36,7 @@ vec3 mobius_add(vec3 b, vec3 a, inout vec3 n) {
 
 void main()
 {
-	vec4 w_pos = model * vec4(vPos, 1.0);
+	vec4 w_pos = model * vec4(vPos, 0.0);
 	Normal = vNormal; // i am not sure about this
 
 	float w_dot = 0.0f;
@@ -45,12 +45,12 @@ void main()
 	matV[0][3] = 0.0;
 	matV[1][3] = 0.0;
 	matV[2][3] = 0.0;
-	vec3 vrPos = vec3(view[0][3], view[1][3], view[2][3]) * matV;
+	vec3 vrPos = (vec4(view[0][3], view[1][3], view[2][3], 0.0) * matV).xyz;
 
 	vec3 hyperPos = vec3(hyperRot[0][3], hyperRot[1][3], hyperRot[2][3]);
 	w_pos.xyz = mobius_add(w_pos.xyz, hyperPos, Normal);
-	w_pos.xyz = hyperRot * w_pos.xyz;
-	Normal = hyperRot * Normal;
+	w_pos.xyz = (hyperRot * w_pos).xyz;
+	Normal = (hyperRot * vec4(Normal, 0.0)).xyz;
 	w_pos.xyz = mobius_add(w_pos.xyz, vrPos, Normal);
 	w_dot = dot(w_pos.xyz, w_pos.xyz);
 
@@ -59,5 +59,5 @@ void main()
 
 	gl_Position = projection * view * w_pos;
 	TexCoords = vTexCoords;
-	FragPos = w_pos;
+	FragPos = w_pos.xyz;
 }

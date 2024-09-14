@@ -102,13 +102,13 @@ int main()
     // build and compile our shader program
     // ------------------------------------
     Shader shdr(
-        std::string(SHADER_DIR) + "/klein-cube.vs", 
-        std::string(SHADER_DIR) + "/material-cube.fs"
+        SHADER_DIR "/hyperbolic-test.vs", 
+        SHADER_DIR "/material-cube.fs"
     );
 
     Shader pickingShader(
-        std::string(SHADER_DIR) + "/klein-cube.vs",
-        std::string(SHADER_DIR) + "/picking.fs"
+        SHADER_DIR "/hyperbolic-test.vs",
+        SHADER_DIR "/picking.fs"
     );
     renderer = new Renderer(&shdr, &pickingShader);
 
