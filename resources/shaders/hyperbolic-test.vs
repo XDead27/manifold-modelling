@@ -1,4 +1,4 @@
-#version 330 core
+#version 410 core
 
 layout (location = 0) in vec3 vPos;
 layout (location = 1) in vec3 vNormal;
@@ -36,7 +36,7 @@ vec3 mobius_add(vec3 b, vec3 a, inout vec3 n) {
 
 void main()
 {
-	vec4 w_pos = model * vec4(vPos, 0.0);
+	vec4 w_pos = model * vec4(vPos, 1.0);
 	Normal = vNormal; // i am not sure about this
 
 	float w_dot = 0.0f;
@@ -49,7 +49,7 @@ void main()
 
 	vec3 hyperPos = vec3(hyperRot[0][3], hyperRot[1][3], hyperRot[2][3]);
 	w_pos.xyz = mobius_add(w_pos.xyz, hyperPos, Normal);
-	w_pos.xyz = (hyperRot * w_pos).xyz;
+	w_pos.xyz = (hyperRot * vec4(w_pos.xyz, 0.0)).xyz;
 	Normal = (hyperRot * vec4(Normal, 0.0)).xyz;
 	w_pos.xyz = mobius_add(w_pos.xyz, vrPos, Normal);
 	w_dot = dot(w_pos.xyz, w_pos.xyz);
@@ -57,6 +57,7 @@ void main()
 	// Project to Beltrami-Klein
 	w_pos.w *= 1.0 + w_dot;
 
+	// gl_Position = projection * view * w_pos;
 	gl_Position = projection * view * w_pos;
 	TexCoords = vTexCoords;
 	FragPos = w_pos.xyz;
