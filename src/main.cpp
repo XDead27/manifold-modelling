@@ -149,6 +149,7 @@ int main()
 
         // create transformations
         renderer->renderScene(scene);
+        std::cout << SceneObject::worldGV.gyr.x << SceneObject::worldGV.gyr.y << SceneObject::worldGV.gyr.z << std::endl;
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------

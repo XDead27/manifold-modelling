@@ -18,11 +18,19 @@ public:
     GyroVector3D() : GyroVector3D(glm::vec3(), glm::quat()) {}
 
     GyroVector3D operator+(GyroVector3D b);
+    GyroVector3D operator+(glm::vec3 b);
+    GyroVector3D operator+=(glm::vec3 b);
     GyroVector3D operator-();
     GyroVector3D operator-(GyroVector3D b);
+    GyroVector3D operator-(glm::vec3 b);
+    GyroVector3D operator-=(glm::vec3 b);
     glm::vec3 operator*(glm::vec3 f);
+    
 
     glm::mat4 toMatrix();
+
+private:
+    
 };
 
 #endif  // INCLUDE_MATH_GYROVECTOR3D_H_

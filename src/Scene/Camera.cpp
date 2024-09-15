@@ -1,4 +1,5 @@
 #include "Camera.h"
+#include "glm/fwd.hpp"
 
 #include <Scene/SceneObject.h>
 #include <glad/glad.h>
@@ -20,25 +21,30 @@ Camera::Camera(
     movementSpeed(mvmtSpeed),
     mouseSensitivity(mouseSensitivity),
     zoom(zoom)
-{}
+{
+    SceneObject::worldGV = startHyper;
+}
 
 glm::mat4 Camera::getViewMatrix() const
 {
     return glm::lookAt(getTranslation(), getTranslation() + front, up);
-    // return glm::lookAt({0.0f, 0.0f, 0.0f}, front, up); // for hyperbolic model
 }
 
 void Camera::processKeyboard(CameraMovement direction, float deltaTime)
 {
     float velocity = movementSpeed * deltaTime;
+    glm::vec3 deltaTranslation = glm::vec3();
     if (direction == CM_FORWARD)
-        addTranslation(front * velocity);
+        deltaTranslation = front * velocity;
     if (direction == CM_BACKWARD)
-        addTranslation(-front * velocity);
+        deltaTranslation = -front * velocity;
     if (direction == CM_LEFT)
-        addTranslation(-right * velocity);
+        deltaTranslation = -right * velocity;
     if (direction == CM_RIGHT)
-        addTranslation(right * velocity);
+        deltaTranslation = right * velocity;
+
+    SceneObject::worldGV = SceneObject::worldGV - deltaTranslation;
+    addTranslation(deltaTranslation);
 }
 
 void Camera::processMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch)

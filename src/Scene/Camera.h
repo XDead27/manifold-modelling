@@ -1,6 +1,7 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
+#include "GyroVector3D.h"
 #include <glad/glad.h>
 #include <glm/glm.hpp>
 
@@ -36,25 +37,19 @@ public:
     float movementSpeed;
     float mouseSensitivity;
     float zoom;
+    
+    GyroVector3D startHyper = GyroVector3D();
 
-    // constructor with vectors
-    Camera(std::string name) : 
-        SceneObject(name), 
-        worldUp({0.0f, 1.0f, 0.0f}), 
-        movementSpeed(SPEED),
-        mouseSensitivity(SENSITIVITY),
-        zoom(ZOOM)
-    {}
-
+public:
     Camera(
         std::string name,
-        glm::vec3 translation,
-        glm::vec3 rotation,
-        glm::vec3 scale,
-        glm::vec3 worldUp,
-        float mvmtSpeed,
-        float mouseSensitivity,
-        float zoom
+        glm::vec3 translation = glm::vec3(),
+        glm::vec3 rotation = glm::vec3(),
+        glm::vec3 scale = glm::vec3(1.0f),
+        glm::vec3 worldUp = glm::vec3(0.0f, 1.0f, 0.0f),
+        float mvmtSpeed = SPEED,
+        float mouseSensitivity = SENSITIVITY,
+        float zoom = ZOOM
     );
 
     // returns the view matrix calculated using Euler Angles and the LookAt Matrix
