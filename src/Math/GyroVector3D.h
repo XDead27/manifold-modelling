@@ -14,8 +14,8 @@ public:
     glm::quat gyr;
 
     GyroVector3D(glm::vec3 vec, glm::quat gyr) : vec(vec), gyr(gyr) {}
-    GyroVector3D(float x, float y, float z) : GyroVector3D(glm::vec3(x, y, z), glm::quat()) {}
-    GyroVector3D() : GyroVector3D(glm::vec3(), glm::quat()) {}
+    GyroVector3D(float x, float y, float z) : GyroVector3D(glm::vec3(x, y, z), glm::quat(1.0f, 0.0f, 0.0f, 0.0f)) {}
+    GyroVector3D() : GyroVector3D(glm::vec3(), glm::quat(1.0f, 0.0f, 0.0f, 0.0f)) {}
 
     GyroVector3D operator+(GyroVector3D b);
     GyroVector3D operator+(glm::vec3 b);

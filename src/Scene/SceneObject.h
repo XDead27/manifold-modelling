@@ -51,7 +51,8 @@ public:
 
     virtual void updateShader(Shader& shader) const 
     {
-        shader.setMat4("hyperRot", (SceneObject::worldGV + _localGV).toMatrix());
+        glm::mat4 hyperRot = (SceneObject::worldGV + _localGV).toMatrix();
+        shader.setMat4("hyperRot", hyperRot);
     }
 };
 
